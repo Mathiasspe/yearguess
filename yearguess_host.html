@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Åsgårdstrand — Hvilket år var det a?</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Satoshi:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface-2: #1c1c28;
+    --surface-3: #25253a;
+    --accent: #ff6b35;
+    --accent-glow: #ff6b3544;
+    --accent-2: #ffb347;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --text: #eaeaf0;
+    --text-dim: #8888a0;
+    --text-muted: #555568;
+    --border: #2a2a3e;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font-display: 'Clash Display', sans-serif;
+    --font-body: 'Satoshi', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .screen { display: none; min-height: 100vh; animation: fadeIn 0.5s ease; }
+  .screen.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes popIn {
+    0% { opacity: 0; transform: scale(0.85); }
+    70% { transform: scale(1.03); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes timerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+    50% { box-shadow: 0 0 40px var(--accent-glow), 0 0 60px rgba(255,107,53,0.15); }
+  }
+
+  /* ===== LOBBY ===== */
+  .lobby {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .lobby::before {
+    content: '';
+    position: absolute;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 65%);
+    top: -250px; right: -200px;
+    pointer-events: none;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative; z-index: 1;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .logo-sub {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    margin-bottom: 2.5rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    position: relative; z-index: 1;
+  }
+
+  .lobby-layout {
+    display: flex;
+    gap: 2rem;
+    max-width: 800px;
+    width: 100%;
+    position: relative; z-index: 1;
+  }
+  .lobby-card {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+  }
+  .lobby-card h2 {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .room-code-display {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.5rem;
+  }
+  .room-code-display label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 0.5rem;
+  }
+  .room-code-value {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 8px;
+  }
+
+  .players-waiting h3 {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.75rem;
+  }
+  #player-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .player-chip {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    animation: popIn 0.3s ease;
+  }
+  .player-dot {
+    width: 8px; height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+  }
+  .no-players { color: var(--text-muted); font-size: 0.9rem; }
+
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .form-group select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    outline: none;
+  }
+  .form-group select:focus { border-color: var(--accent); }
+  .form-group select option { background: var(--surface-2); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 2rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #ff8855 100%);
+    color: #fff;
+    width: 100%;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--accent-glow);
+  }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ===== GAME (PHOTO DISPLAY) ===== */
+  .game { flex-direction: column; height: 100vh; }
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .round-badge {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--accent);
+  }
+  .timer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text);
+    padding: 0.3rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 99px;
+  }
+  .timer.warning {
+    color: var(--danger);
+    border-color: var(--danger);
+    animation: timerPulse 0.5s ease infinite;
+  }
+  .guesses-status {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+  .guesses-status strong { color: var(--success); }
+
+  .game-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  .game-body img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    user-select: none;
+  }
+  .photo-hint {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(10px);
+    padding: 0.6rem 1.5rem;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+  .waiting-overlay {
+    position: absolute;
+    bottom: 5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.8rem 1.5rem;
+    border-radius: 99px;
+    font-size: 0.95rem;
+    color: var(--text);
+    animation: glow 2s ease infinite;
+    white-space: nowrap;
+  }
+
+  /* ===== RESULT SCREEN ===== */
+  .result {
+    flex-direction: column;
+    height: 100vh;
+    padding: 1.5rem 2rem;
+    gap: 1rem;
+    align-items: center;
+  }
+  .result-top {
+    text-align: center;
+    animation: popIn 0.4s ease;
+    flex-shrink: 0;
+  }
+  .result-top h1 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    margin-bottom: 0.15rem;
+  }
+  .result-top .round-label {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+
+  .result-content {
+    display: flex;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 1100px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Year result visual */
+  .year-result-visual {
+    flex: 2;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .year-result-photo {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    background: #000;
+  }
+  .year-result-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .correct-year-badge {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1.5rem;
+    border-radius: 99px;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--success);
+    border: 1px solid rgba(34,197,94,0.3);
+  }
+
+  /* Year number line */
+  .year-numberline {
+    padding: 1.25rem 2rem;
+    background: var(--surface-2);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .year-line-track {
+    position: relative;
+    height: 4px;
+    background: var(--surface-3);
+    border-radius: 2px;
+    margin: 2rem 0 0.5rem;
+  }
+  .year-line-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+  }
+  .year-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    z-index: 2;
+  }
+  .year-marker-label {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.5);
+  }
+  .year-marker.correct {
+    background: var(--success);
+    width: 20px;
+    height: 20px;
+    box-shadow: 0 0 12px rgba(34,197,94,0.5);
+  }
+  .year-marker.correct .year-marker-label {
+    color: var(--success);
+    font-size: 0.8rem;
+  }
+
+  .result-sidebar {
+    flex: 0.7;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .result-player-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    animation: slideUp 0.4s ease both;
+    flex-shrink: 0;
+  }
+  .result-player-card:first-child {
+    background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(255,179,71,0.08));
+    border-color: rgba(255,107,53,0.3);
+  }
+  .result-rank {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.2rem;
+    min-width: 2rem;
+    text-align: center;
+  }
+  .result-player-info { flex: 1; }
+  .result-player-info .name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.1rem;
+  }
+  .result-player-info .dist {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .result-player-points {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .result-actions { flex-shrink: 0; }
+
+  /* ===== LEADERBOARD ===== */
+  .leaderboard {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .leaderboard::before {
+    content: '';
+    position: absolute;
+    width: 800px; height: 800px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 55%);
+    top: -300px; left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .leaderboard-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3rem;
+    max-width: 550px;
+    width: 100%;
+    text-align: center;
+    position: relative; z-index: 1;
+    animation: popIn 0.5s ease;
+  }
+  .trophy { font-size: 4rem; margin-bottom: 0.5rem; }
+  .leaderboard-card h1 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+  }
+  .subtitle { color: var(--text-dim); margin-bottom: 2rem; }
+  .standing-row {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+    background: var(--surface-2);
+  }
+  .standing-row:first-child {
+    background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,179,71,0.1));
+    border: 1px solid rgba(255,107,53,0.3);
+  }
+  .standing-rank {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.5rem;
+    min-width: 3rem;
+  }
+  .standing-name { flex: 1; text-align: left; font-weight: 600; font-size: 1.1rem; }
+  .standing-score {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--accent-2);
+  }
+  .standing-score small { font-weight: 400; font-size: 0.8rem; color: var(--text-dim); }
+
+  @media (max-width: 768px) {
+    .logo { font-size: 2.5rem; }
+    .lobby-layout { flex-direction: column; }
+    .result-content { flex-direction: column; }
+    .year-result-visual { min-height: 350px; }
+    .result-sidebar { max-height: 200px; }
+    .room-code-value { font-size: 2.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== LOBBY ===== -->
+<div id="lobby-screen" class="screen lobby active">
+  <div class="logo">Hvilket år var det a?</div>
+  <div class="logo-sub"></div>
+
+  <div class="lobby-layout">
+    <div class="lobby-card">
+      <h2>📡 Game Room</h2>
+      <div class="room-code-display">
+        <label>Room Code</label>
+        <div class="room-code-value" id="room-code">----</div>
+        <div style="margin-top: 1rem; text-align: center;">
+          <img src="qr.png" alt="Scan to join" style="width: 180px; border-radius: 12px;" />
+        </div>
+      </div>
+      <div class="players-waiting">
+        <h3>Players joined</h3>
+        <div id="player-chips"><span class="no-players">Waiting for players to join...</span></div>
+      </div>
+    </div>
+
+    <div class="lobby-card">
+      <h2>⚙️ Settings</h2>
+      <div class="form-group">
+        <label>Rounds</label>
+        <select id="num-rounds">
+          <option value="5">5 rounds</option>
+          <option value="10" selected>10 rounds</option>
+          <option value="15">15 rounds</option>
+          <option value="20">20 rounds</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Time per Round</label>
+        <select id="time-limit">
+          <option value="15">15 seconds</option>
+          <option value="30" selected>30 seconds</option>
+          <option value="45">45 seconds</option>
+          <option value="60">60 seconds</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="start-game-btn" disabled>🚀 Start Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GAME (PHOTO DISPLAY) ===== -->
+<div id="game-screen" class="screen game">
+  <div class="game-header">
+    <span class="round-badge" id="round-badge">Round 1 / 10</span>
+    <div class="timer" id="timer">
+      <span>⏱</span>
+      <span id="timer-value">30</span>
+    </div>
+    <span class="guesses-status" id="guesses-status">
+      Guesses: <strong id="guesses-count">0</strong> / <span id="guesses-total">0</span>
+    </span>
+  </div>
+  <div class="game-body">
+    <img id="game-photo" src="" alt="Guess the year!" />
+    <div class="photo-hint" id="photo-hint"></div>
+    <div class="waiting-overlay" id="waiting-overlay">⏳ Waiting for all players to guess...</div>
+  </div>
+</div>
+
+<!-- ===== ROUND RESULT ===== -->
+<div id="result-screen" class="screen result">
+  <div class="result-top">
+    <h1 id="result-title">📅 Round Result</h1>
+    <p class="round-label" id="result-round-label">Round 1 / 10</p>
+  </div>
+  <div class="result-content">
+    <div class="year-result-visual">
+      <div class="year-result-photo">
+        <img id="result-photo" src="" />
+        <div class="correct-year-badge" id="correct-year-badge">📅 2019</div>
+      </div>
+      <div class="year-numberline">
+        <div class="year-line-track" id="year-line-track"></div>
+        <div class="year-line-labels" id="year-line-labels"></div>
+      </div>
+    </div>
+    <div class="result-sidebar" id="result-sidebar"></div>
+  </div>
+  <div class="result-actions">
+    <button class="btn btn-primary" id="next-round-btn" style="width:auto;padding:0.85rem 3rem;">Next Round →</button>
+  </div>
+</div>
+
+<!-- ===== FINAL LEADERBOARD ===== -->
+<div id="leaderboard-screen" class="screen leaderboard">
+  <div class="leaderboard-card">
+    <div class="trophy">🏆</div>
+    <h1 id="winner-name">Winner!</h1>
+    <p class="subtitle" id="winner-subtitle"></p>
+    <div id="final-standings"></div>
+    <button class="btn btn-primary" id="play-again-btn" style="margin-top:1.5rem;">🔁 Play Again</button>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+// =============================================================================
+// 🔥 FIREBASE CONFIG
+// =============================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyC8OgZwMrx2fWL-lVsKOkys5fSMennFV8k",
+  authDomain: "simulatorpriser.firebaseapp.com",
+  databaseURL: "https://simulatorpriser-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "simulatorpriser",
+  storageBucket: "simulatorpriser.firebasestorage.app",
+  messagingSenderId: "821698736622",
+  appId: "1:821698736622:web:7a7982d953aa19ede55eff"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// =============================================================================
+// 📸 PHOTOS — REPLACE WITH YOUR OWN!
+// =============================================================================
+// Each photo needs: url (path to image), year (correct year), hint (optional)
+const PHOTOS = [
+  { url: "photos/example1.jpg", year: 2015, hint: "Summer" },
+  { url: "photos/example2.jpg", year: 2008, hint: "Birthday" },
+  { url: "photos/example3.jpg", year: 2020, hint: "Lockdown" },
+  { url: "photos/example4.jpg", year: 1999, hint: "" },
+  { url: "photos/example5.jpg", year: 2012, hint: "Christmas" },
+];
+
+// =============================================================================
+// SCORING CONFIG
+// =============================================================================
+// Points based on how many years off: 0 off = 5000, 1 off = 4000, etc.
+function calcPoints(yearsOff) {
+  if (yearsOff === 0) return 5000;
+  if (yearsOff === 1) return 3500;
+  if (yearsOff === 2) return 2500;
+  if (yearsOff === 3) return 1500;
+  if (yearsOff === 4) return 800;
+  if (yearsOff === 5) return 400;
+  return Math.max(0, Math.round(200 * Math.exp(-(yearsOff - 5) / 3)));
+}
+
+// =============================================================================
+// GAME STATE
+// =============================================================================
+let roomRef = null;
+let roomCode = '';
+let timerInterval = null;
+
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// =============================================================================
+// LOBBY
+// =============================================================================
+async function createRoom() {
+  roomCode = generateCode();
+  roomRef = db.ref('yearrooms/' + roomCode);
+
+  roomRef.onDisconnect().remove();
+
+  await roomRef.set({
+    state: 'lobby',
+    host: true,
+    createdAt: firebase.database.ServerValue.TIMESTAMP,
+    settings: {
+      totalRounds: parseInt(document.getElementById('num-rounds').value),
+      timeLimit: parseInt(document.getElementById('time-limit').value),
+    },
+    players: {},
+    currentRound: 0,
+    photos: [],
+  });
+
+  document.getElementById('room-code').textContent = roomCode;
+
+  roomRef.child('players').on('value', (snap) => {
+    const players = snap.val() || {};
+    const names = Object.values(players).map(p => p.name);
+    const chipsEl = document.getElementById('player-chips');
+
+    if (names.length === 0) {
+      chipsEl.innerHTML = '<span class="no-players">Waiting for players to join...</span>';
+      document.getElementById('start-game-btn').disabled = true;
+    } else {
+      chipsEl.innerHTML = names.map(n =>
+        `<span class="player-chip"><span class="player-dot"></span>${n}</span>`
+      ).join('');
+      document.getElementById('start-game-btn').disabled = false;
+    }
+  });
+}
+
+createRoom();
+
+document.getElementById('num-rounds').addEventListener('change', () => {
+  if (roomRef) roomRef.child('settings/totalRounds').set(
+    parseInt(document.getElementById('num-rounds').value)
+  );
+});
+document.getElementById('time-limit').addEventListener('change', () => {
+  if (roomRef) roomRef.child('settings/timeLimit').set(
+    parseInt(document.getElementById('time-limit').value)
+  );
+});
+
+// Start game
+document.getElementById('start-game-btn').addEventListener('click', async () => {
+  const totalRounds = parseInt(document.getElementById('num-rounds').value);
+  const shuffled = shuffle(PHOTOS).slice(0, totalRounds);
+
+  const photosData = shuffled.map(p => ({
+    url: p.url,
+    year: p.year,
+    hint: p.hint || '',
+  }));
+
+  await roomRef.update({
+    state: 'playing',
+    currentRound: 0,
+    photos: photosData,
+    settings: {
+      totalRounds,
+      timeLimit: parseInt(document.getElementById('time-limit').value),
+    },
+  });
+
+  await roomRef.child('guesses').remove();
+
+  showScreen('game-screen');
+  startRound(0, photosData, totalRounds);
+});
+
+// =============================================================================
+// GAME ROUND
+// =============================================================================
+function startRound(roundIndex, photos, totalRounds) {
+  const photo = photos[roundIndex];
+  const settings = {
+    totalRounds,
+    timeLimit: parseInt(document.getElementById('time-limit').value),
+  };
+
+  document.getElementById('round-badge').textContent = `Round ${roundIndex + 1} / ${totalRounds}`;
+  document.getElementById('game-photo').src = photo.url;
+  document.getElementById('photo-hint').textContent = photo.hint || '';
+  document.getElementById('waiting-overlay').style.display = 'flex';
+
+  roomRef.child('players').once('value', (snap) => {
+    const playerCount = Object.keys(snap.val() || {}).length;
+    document.getElementById('guesses-total').textContent = playerCount;
+    document.getElementById('guesses-count').textContent = '0';
+  });
+
+  roomRef.update({
+    currentRound: roundIndex,
+    roundState: 'guessing',
+    roundStartedAt: firebase.database.ServerValue.TIMESTAMP,
+  });
+
+  roomRef.child(`guesses/round_${roundIndex}`).remove();
+
+  startTimer(settings.timeLimit);
+  listenForGuesses(roundIndex, photos, totalRounds);
+}
+
+function startTimer(seconds) {
+  clearInterval(timerInterval);
+  const timerEl = document.getElementById('timer');
+  const timerVal = document.getElementById('timer-value');
+
+  let timeLeft = seconds;
+  timerVal.textContent = timeLeft;
+  timerEl.classList.remove('warning');
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerVal.textContent = timeLeft;
+    if (timeLeft <= 10) timerEl.classList.add('warning');
+
+    roomRef.child('timeLeft').set(timeLeft);
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      endRound();
+    }
+  }, 1000);
+}
+
+function listenForGuesses(roundIndex, photos, totalRounds) {
+  const guessRef = roomRef.child(`guesses/round_${roundIndex}`);
+
+  guessRef.on('value', (snap) => {
+    const guesses = snap.val() || {};
+    const guessCount = Object.keys(guesses).length;
+    document.getElementById('guesses-count').textContent = guessCount;
+
+    roomRef.child('players').once('value', (psnap) => {
+      const playerCount = Object.keys(psnap.val() || {}).length;
+      if (guessCount >= playerCount && playerCount > 0) {
+        clearInterval(timerInterval);
+        setTimeout(() => endRound(), 1000);
+      }
+    });
+  });
+
+  window._currentGuessRef = guessRef;
+  window._currentRoundIndex = roundIndex;
+  window._currentPhotos = photos;
+  window._currentTotalRounds = totalRounds;
+}
+
+async function endRound() {
+  const roundIndex = window._currentRoundIndex;
+  const photos = window._currentPhotos;
+  const totalRounds = window._currentTotalRounds;
+  const photo = photos[roundIndex];
+
+  await roomRef.update({ roundState: 'results' });
+
+  if (window._currentGuessRef) window._currentGuessRef.off();
+
+  const guessSnap = await roomRef.child(`guesses/round_${roundIndex}`).once('value');
+  const guesses = guessSnap.val() || {};
+
+  const playerSnap = await roomRef.child('players').once('value');
+  const players = playerSnap.val() || {};
+
+  const results = [];
+  for (const [playerId, guess] of Object.entries(guesses)) {
+    const yearsOff = Math.abs(guess.year - photo.year);
+    const points = calcPoints(yearsOff);
+    results.push({
+      playerId,
+      name: players[playerId]?.name || 'Unknown',
+      guessedYear: guess.year,
+      yearsOff,
+      points,
+    });
+
+    const currentScore = players[playerId]?.totalScore || 0;
+    await roomRef.child(`players/${playerId}/totalScore`).set(currentScore + points);
+  }
+
+  // Players who didn't guess
+  for (const [playerId, player] of Object.entries(players)) {
+    if (!guesses[playerId]) {
+      results.push({
+        playerId,
+        name: player.name,
+        guessedYear: null,
+        yearsOff: 999,
+        points: 0,
+      });
+    }
+  }
+
+  results.sort((a, b) => b.points - a.points);
+
+  await roomRef.child(`results/round_${roundIndex}`).set(
+    results.map(r => ({ name: r.name, guessedYear: r.guessedYear, yearsOff: r.yearsOff, points: r.points }))
+  );
+
+  showRoundResult(roundIndex, photo, results, totalRounds);
+}
+
+// =============================================================================
+// ROUND RESULT
+// =============================================================================
+function showRoundResult(roundIndex, photo, results, totalRounds) {
+  showScreen('result-screen');
+
+  const bestOff = results[0]?.yearsOff ?? 999;
+  document.getElementById('result-title').textContent =
+    bestOff === 0 ? '🎯 Spot on!' :
+    bestOff <= 1 ? '🔥 So close!' :
+    bestOff <= 3 ? '👍 Good guesses!' :
+    bestOff <= 5 ? '🤔 Tricky one...' : '📅 Way off!';
+
+  document.getElementById('result-round-label').textContent =
+    `Round ${roundIndex + 1} / ${totalRounds}`;
+
+  // Show photo with correct year
+  document.getElementById('result-photo').src = photo.url;
+  document.getElementById('correct-year-badge').textContent = `📅 ${photo.year}`;
+
+  // Build year number line
+  const allYears = results.filter(r => r.guessedYear != null).map(r => r.guessedYear);
+  allYears.push(photo.year);
+  const minYear = Math.min(...allYears) - 2;
+  const maxYear = Math.max(...allYears) + 2;
+  const range = maxYear - minYear;
+
+  const track = document.getElementById('year-line-track');
+  track.innerHTML = '';
+
+  // Correct year marker
+  const correctPct = ((photo.year - minYear) / range) * 100;
+  track.innerHTML += `
+    <div class="year-marker correct" style="left:${correctPct}%">
+      <span class="year-marker-label">${photo.year}</span>
+    </div>
+  `;
+
+  // Player guess markers
+  const colors = ['#ff6b35','#3b82f6','#a855f7','#ec4899','#14b8a6','#eab308','#6366f1','#f43f5e'];
+  results.forEach((r, i) => {
+    if (r.guessedYear != null) {
+      const pct = ((r.guessedYear - minYear) / range) * 100;
+      const color = colors[i % colors.length];
+      track.innerHTML += `
+        <div class="year-marker" style="left:${pct}%;background:${color};">
+          <span class="year-marker-label" style="color:${color};">${r.name}: ${r.guessedYear}</span>
+        </div>
+      `;
+    }
+  });
+
+  // Labels
+  const labels = document.getElementById('year-line-labels');
+  labels.innerHTML = `<span>${minYear}</span><span>${maxYear}</span>`;
+
+  // Player cards
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('result-sidebar').innerHTML = results.map((r, i) => `
+    <div class="result-player-card" style="animation-delay:${i * 0.1}s">
+      <span class="result-rank">${medals[i] || (i + 1)}</span>
+      <div class="result-player-info">
+        <div class="name">${r.name}</div>
+        <div class="dist">${r.guessedYear != null ? `Guessed ${r.guessedYear} (${r.yearsOff === 0 ? 'exact!' : r.yearsOff + ' year' + (r.yearsOff !== 1 ? 's' : '') + ' off'})` : 'No guess'}</div>
+      </div>
+      <span class="result-player-points">+${r.points}</span>
+    </div>
+  `).join('');
+
+  // Next button
+  const nextBtn = document.getElementById('next-round-btn');
+  if (roundIndex >= totalRounds - 1) {
+    nextBtn.textContent = '🏆 Final Scores';
+    nextBtn.onclick = () => showFinalLeaderboard();
+  } else {
+    nextBtn.textContent = 'Next Round →';
+    nextBtn.onclick = () => {
+      showScreen('game-screen');
+      startRound(roundIndex + 1, window._currentPhotos, totalRounds);
+    };
+  }
+}
+
+// =============================================================================
+// FINAL LEADERBOARD
+// =============================================================================
+async function showFinalLeaderboard() {
+  const snap = await roomRef.child('players').once('value');
+  const players = snap.val() || {};
+  const sorted = Object.values(players).sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+
+  await roomRef.update({ state: 'finished' });
+
+  showScreen('leaderboard-screen');
+
+  const winner = sorted[0];
+  document.getElementById('winner-name').textContent = `${winner.name} Wins!`;
+  document.getElementById('winner-subtitle').textContent =
+    `${(winner.totalScore || 0).toLocaleString()} points across ${window._currentTotalRounds} rounds`;
+
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('final-standings').innerHTML = sorted.map((p, i) => `
+    <div class="standing-row" style="animation: slideUp 0.4s ease ${i * 0.1}s both;">
+      <span class="standing-rank">${medals[i] || (i + 1)}</span>
+      <span class="standing-name">${p.name}</span>
+      <span class="standing-score">${(p.totalScore || 0).toLocaleString()} <small>pts</small></span>
+    </div>
+  `).join('');
+}
+
+document.getElementById('play-again-btn').addEventListener('click', async () => {
+  const snap = await roomRef.child('players').once('value');
+  const players = snap.val() || {};
+  for (const id of Object.keys(players)) {
+    await roomRef.child(`players/${id}/totalScore`).set(0);
+  }
+  await roomRef.child('guesses').remove();
+  await roomRef.child('results').remove();
+  await roomRef.update({ state: 'lobby', currentRound: 0, roundState: null });
+
+  showScreen('lobby-screen');
+});
+</script>
+</body>
+</html>

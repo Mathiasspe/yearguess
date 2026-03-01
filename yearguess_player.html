@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hvilket år var det a? — Player</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Satoshi:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface-2: #1c1c28;
+    --surface-3: #25253a;
+    --accent: #ff6b35;
+    --accent-glow: #ff6b3544;
+    --accent-2: #ffb347;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --text: #eaeaf0;
+    --text-dim: #8888a0;
+    --text-muted: #555568;
+    --border: #2a2a3e;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font-display: 'Clash Display', sans-serif;
+    --font-body: 'Satoshi', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .screen { display: none; height: 100vh; animation: fadeIn 0.4s ease; }
+  .screen.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes popIn {
+    0% { opacity: 0; transform: scale(0.85); }
+    70% { transform: scale(1.03); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes timerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* ===== JOIN SCREEN ===== */
+  .join {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .join::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 65%);
+    top: -200px; right: -150px;
+    pointer-events: none;
+  }
+
+  .logo-sm {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.25rem;
+    position: relative; z-index: 1;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .logo-sm-sub {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    position: relative; z-index: 1;
+  }
+
+  .join-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    width: 100%;
+    max-width: 380px;
+    position: relative; z-index: 1;
+    animation: popIn 0.4s ease;
+  }
+  .join-card h2 {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .code-input {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.8rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 8px;
+    text-align: center;
+    text-transform: uppercase;
+    background: var(--surface-2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .code-input:focus { border-color: var(--accent); }
+  .code-input::placeholder {
+    letter-spacing: 4px;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+  }
+  .form-group input:not(.code-input) {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 1rem;
+    font-family: var(--font-body);
+    outline: none;
+  }
+  .form-group input:not(.code-input):focus { border-color: var(--accent); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 2rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #ff8855);
+    color: #fff;
+    width: 100%;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--accent-glow);
+  }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .error-msg {
+    color: var(--danger);
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 0.75rem;
+    display: none;
+  }
+
+  /* ===== WAITING ===== */
+  .waiting {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+  .waiting-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: breathe 2s ease infinite;
+  }
+  .waiting h1 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+  .waiting p { color: var(--text-dim); margin-bottom: 1.5rem; }
+  .player-name-display {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.6rem 1.5rem;
+    border-radius: 99px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* ===== GUESS SCREEN (YEAR PICKER) ===== */
+  .guess {
+    flex-direction: column;
+  }
+  .guess-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .round-badge {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .timer {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 0.2rem 0.8rem;
+    border: 2px solid var(--border);
+    border-radius: 99px;
+  }
+  .timer.warning {
+    color: var(--danger);
+    border-color: var(--danger);
+    animation: timerPulse 0.5s ease infinite;
+  }
+  .player-score-badge {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+  .player-score-badge strong { color: var(--accent-2); }
+
+  .year-picker-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    gap: 1.5rem;
+  }
+
+  .year-display {
+    font-family: var(--font-display);
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -2px;
+    line-height: 1;
+    user-select: none;
+    transition: transform 0.1s;
+  }
+
+  .year-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .year-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .year-btn:active {
+    transform: scale(0.9);
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .year-btn.big {
+    width: 64px;
+    height: 64px;
+    font-size: 1.1rem;
+    background: var(--surface-2);
+  }
+
+  .year-slider-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 0 1rem;
+  }
+  .year-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface-3);
+    outline: none;
+  }
+  .year-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .year-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid #fff;
+    cursor: pointer;
+  }
+  .year-slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+  }
+
+  .guess-confirmed {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,15,0.88);
+    backdrop-filter: blur(12px);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    text-align: center;
+    padding: 2rem;
+  }
+  .guess-confirmed.active { display: flex; }
+  .guess-confirmed .check { font-size: 4rem; animation: popIn 0.4s ease; }
+  .guess-confirmed h2 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    margin: 1rem 0 0.5rem;
+  }
+  .guess-confirmed .guess-year-show {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .guess-confirmed p { color: var(--text-dim); }
+
+  .submit-bar {
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .btn-submit {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent), #ff8855);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-submit:hover { box-shadow: 0 4px 20px var(--accent-glow); }
+
+  /* ===== PLAYER RESULT ===== */
+  .player-result {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+  .player-result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    animation: popIn 0.4s ease;
+  }
+  .player-result-card h2 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .my-years-off {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  .my-years-off.exact { color: var(--success); }
+  .my-years-off.close { color: var(--accent-2); }
+  .my-years-off.far { color: var(--danger); }
+  .my-points {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    margin-bottom: 1.25rem;
+  }
+  .my-points strong { color: var(--accent); font-family: var(--font-display); }
+
+  .mini-leaderboard { margin-top: 1rem; text-align: left; }
+  .mini-row {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.3rem;
+    background: var(--surface-2);
+    font-size: 0.9rem;
+  }
+  .mini-row.me {
+    background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(255,179,71,0.08));
+    border: 1px solid rgba(255,107,53,0.25);
+  }
+  .mini-row .rank {
+    min-width: 2rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .mini-row .name { flex: 1; font-weight: 500; }
+  .mini-row .pts {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--accent-2);
+  }
+  .waiting-next {
+    margin-top: 1.25rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    animation: breathe 2s ease infinite;
+  }
+
+  /* ===== FINAL ===== */
+  .final {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .final::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .final-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    max-width: 420px;
+    width: 100%;
+    position: relative; z-index: 1;
+    animation: popIn 0.5s ease;
+  }
+  .final-trophy { font-size: 3.5rem; margin-bottom: 0.75rem; }
+  .final-card h1 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+  }
+  .final-card .sub {
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+  .final-standings { text-align: left; }
+  .final-row {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.4rem;
+    background: var(--surface-2);
+  }
+  .final-row:first-child {
+    background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,179,71,0.1));
+    border: 1px solid rgba(255,107,53,0.3);
+  }
+  .final-row .rank {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--accent);
+    min-width: 2.5rem;
+    text-align: center;
+  }
+  .final-row .name { flex: 1; font-weight: 600; }
+  .final-row .score {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--accent-2);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== JOIN ===== -->
+<div id="join-screen" class="screen join active">
+  <div class="logo-sm">Hvilket år var det a?</div>
+  <div class="logo-sm-sub">Player</div>
+
+  <div class="join-card">
+    <h2>🎮 Join Game</h2>
+    <div class="form-group">
+      <label>Room Code</label>
+      <input type="text" id="room-code-input" class="code-input" placeholder="XXXX" maxlength="4" autocomplete="off" />
+    </div>
+    <div class="form-group">
+      <label>Your Name</label>
+      <input type="text" id="player-name-input" placeholder="Enter your name..." maxlength="20" />
+    </div>
+    <button class="btn btn-primary" id="join-btn">🚀 Join</button>
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+</div>
+
+<!-- ===== WAITING ===== -->
+<div id="waiting-screen" class="screen waiting">
+  <div class="waiting-icon">📅</div>
+  <h1>You're in!</h1>
+  <p>Waiting for the host to start the game...</p>
+  <div class="player-name-display" id="my-name-display"></div>
+</div>
+
+<!-- ===== GUESS SCREEN ===== -->
+<div id="guess-screen" class="screen guess">
+  <div class="guess-header">
+    <span class="round-badge" id="p-round-badge">Round 1 / 10</span>
+    <div class="timer" id="p-timer">
+      <span>⏱</span>
+      <span id="p-timer-value">30</span>
+    </div>
+    <span class="player-score-badge">Score: <strong id="p-my-score">0</strong></span>
+  </div>
+
+  <div class="year-picker-area">
+    <div class="year-display" id="year-display">2015</div>
+
+    <div class="year-buttons">
+      <button class="year-btn big" id="btn-minus10">-10</button>
+      <button class="year-btn" id="btn-minus1">-1</button>
+      <button class="year-btn" id="btn-plus1">+1</button>
+      <button class="year-btn big" id="btn-plus10">+10</button>
+    </div>
+
+    <div class="year-slider-container">
+      <input type="range" class="year-slider" id="year-slider" min="1970" max="2026" value="2015" />
+      <div class="year-slider-labels">
+        <span>1970</span>
+        <span>2026</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="guess-confirmed" id="guess-confirmed">
+    <div class="check">✅</div>
+    <h2>Guess Locked In!</h2>
+    <div class="guess-year-show" id="guess-year-show">2015</div>
+    <p>Waiting for other players...</p>
+  </div>
+
+  <div class="submit-bar">
+    <button class="btn-submit" id="submit-guess-btn">📅 Submit Guess</button>
+  </div>
+</div>
+
+<!-- ===== PLAYER RESULT ===== -->
+<div id="player-result-screen" class="screen player-result">
+  <div class="player-result-card">
+    <h2 id="pr-title">Round Result</h2>
+    <div class="my-years-off" id="pr-years-off"></div>
+    <div class="my-points" id="pr-points"></div>
+    <div class="mini-leaderboard" id="pr-leaderboard"></div>
+    <div class="waiting-next">⏳ Waiting for host to continue...</div>
+  </div>
+</div>
+
+<!-- ===== FINAL ===== -->
+<div id="final-screen" class="screen final">
+  <div class="final-card">
+    <div class="final-trophy">🏆</div>
+    <h1 id="f-title">Game Over!</h1>
+    <p class="sub" id="f-subtitle"></p>
+    <div class="final-standings" id="f-standings"></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+// =============================================================================
+// 🔥 FIREBASE CONFIG — MUST MATCH HOST!
+// =============================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyC8OgZwMrx2fWL-lVsKOkys5fSMennFV8k",
+  authDomain: "simulatorpriser.firebaseapp.com",
+  databaseURL: "https://simulatorpriser-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "simulatorpriser",
+  storageBucket: "simulatorpriser.firebasestorage.app",
+  messagingSenderId: "821698736622",
+  appId: "1:821698736622:web:7a7982d953aa19ede55eff"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// =============================================================================
+// STATE
+// =============================================================================
+let roomRef = null;
+let playerId = null;
+let playerName = '';
+let hasGuessedThisRound = false;
+let currentRoundIndex = -1;
+let selectedYear = 2015;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function calcPoints(yearsOff) {
+  if (yearsOff === 0) return 5000;
+  if (yearsOff === 1) return 3500;
+  if (yearsOff === 2) return 2500;
+  if (yearsOff === 3) return 1500;
+  if (yearsOff === 4) return 800;
+  if (yearsOff === 5) return 400;
+  return Math.max(0, Math.round(200 * Math.exp(-(yearsOff - 5) / 3)));
+}
+
+// =============================================================================
+// YEAR PICKER CONTROLS
+// =============================================================================
+const yearDisplay = document.getElementById('year-display');
+const yearSlider = document.getElementById('year-slider');
+
+function setYear(y) {
+  selectedYear = Math.max(1970, Math.min(2026, y));
+  yearDisplay.textContent = selectedYear;
+  yearSlider.value = selectedYear;
+}
+
+document.getElementById('btn-minus10').addEventListener('click', () => setYear(selectedYear - 10));
+document.getElementById('btn-minus1').addEventListener('click', () => setYear(selectedYear - 1));
+document.getElementById('btn-plus1').addEventListener('click', () => setYear(selectedYear + 1));
+document.getElementById('btn-plus10').addEventListener('click', () => setYear(selectedYear + 10));
+yearSlider.addEventListener('input', (e) => setYear(parseInt(e.target.value)));
+
+// Swipe support on year display
+let touchStartY = null;
+yearDisplay.addEventListener('touchstart', (e) => {
+  touchStartY = e.touches[0].clientY;
+});
+yearDisplay.addEventListener('touchmove', (e) => {
+  if (touchStartY === null) return;
+  e.preventDefault();
+  const diff = touchStartY - e.touches[0].clientY;
+  if (Math.abs(diff) > 30) {
+    setYear(selectedYear + (diff > 0 ? 1 : -1));
+    touchStartY = e.touches[0].clientY;
+  }
+}, { passive: false });
+yearDisplay.addEventListener('touchend', () => { touchStartY = null; });
+
+// =============================================================================
+// JOIN ROOM
+// =============================================================================
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('room')) {
+  document.getElementById('room-code-input').value = urlParams.get('room').toUpperCase();
+}
+
+document.getElementById('join-btn').addEventListener('click', joinRoom);
+document.getElementById('player-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') joinRoom();
+});
+
+async function joinRoom() {
+  const code = document.getElementById('room-code-input').value.trim().toUpperCase();
+  const name = document.getElementById('player-name-input').value.trim();
+
+  if (!code || code.length !== 4) return showError('Enter a 4-character room code');
+  if (!name) return showError('Enter your name');
+
+  // Check room exists (use yearrooms path)
+  const snap = await db.ref('yearrooms/' + code).once('value');
+  if (!snap.exists()) return showError('Room not found. Check the code!');
+
+  const room = snap.val();
+  if (room.state === 'playing') return showError('Game already in progress!');
+
+  roomRef = db.ref('yearrooms/' + code);
+  playerName = name;
+
+  const playerRef = roomRef.child('players').push();
+  playerId = playerRef.key;
+
+  await playerRef.set({
+    name: playerName,
+    totalScore: 0,
+    joinedAt: firebase.database.ServerValue.TIMESTAMP,
+  });
+
+  playerRef.onDisconnect().remove();
+
+  document.getElementById('my-name-display').textContent = `Playing as: ${playerName}`;
+  showScreen('waiting-screen');
+
+  listenToRoom();
+}
+
+// =============================================================================
+// ROOM LISTENER
+// =============================================================================
+function listenToRoom() {
+  roomRef.on('value', (snap) => {
+    const data = snap.val();
+    if (!data) return;
+
+    const state = data.state;
+    const roundState = data.roundState;
+    const roundIndex = data.currentRound || 0;
+
+    if (state === 'playing' && roundState === 'guessing') {
+      if (roundIndex !== currentRoundIndex) {
+        currentRoundIndex = roundIndex;
+        hasGuessedThisRound = false;
+        document.getElementById('guess-confirmed').classList.remove('active');
+        startGuessing(data);
+      }
+    }
+
+    if (state === 'playing' && roundState === 'results') {
+      showPlayerResult(data);
+    }
+
+    if (state === 'finished') {
+      showFinalScreen(data);
+    }
+  });
+
+  roomRef.child('timeLeft').on('value', (snap) => {
+    const timeLeft = snap.val();
+    if (timeLeft == null) return;
+
+    const timerEl = document.getElementById('p-timer');
+    const timerVal = document.getElementById('p-timer-value');
+    timerVal.textContent = timeLeft;
+
+    if (timeLeft <= 10) {
+      timerEl.classList.add('warning');
+    } else {
+      timerEl.classList.remove('warning');
+    }
+
+    if (timeLeft <= 0 && !hasGuessedThisRound) {
+      submitGuess(true);
+    }
+  });
+}
+
+// =============================================================================
+// GUESSING
+// =============================================================================
+function startGuessing(data) {
+  showScreen('guess-screen');
+
+  const totalRounds = data.settings?.totalRounds || 10;
+  const roundIndex = data.currentRound || 0;
+
+  document.getElementById('p-round-badge').textContent = `Round ${roundIndex + 1} / ${totalRounds}`;
+
+  const myData = data.players?.[playerId];
+  document.getElementById('p-my-score').textContent = myData?.totalScore || 0;
+
+  // Reset year to middle
+  setYear(2005);
+}
+
+document.getElementById('submit-guess-btn').addEventListener('click', () => submitGuess(false));
+
+async function submitGuess(timedOut) {
+  if (hasGuessedThisRound) return;
+  hasGuessedThisRound = true;
+
+  await roomRef.child(`guesses/round_${currentRoundIndex}/${playerId}`).set({
+    year: selectedYear,
+    submittedAt: firebase.database.ServerValue.TIMESTAMP,
+    timedOut,
+  });
+
+  document.getElementById('guess-year-show').textContent = selectedYear;
+  document.getElementById('guess-confirmed').classList.add('active');
+}
+
+// =============================================================================
+// ROUND RESULT (PLAYER VIEW)
+// =============================================================================
+function showPlayerResult(data) {
+  const roundIndex = data.currentRound || 0;
+  const results = data.results?.[`round_${roundIndex}`];
+  if (!results) return;
+
+  const photo = data.photos?.[roundIndex];
+  if (!photo) return;
+
+  showScreen('player-result-screen');
+
+  const myResult = results.find(r => r.name === playerName) || { yearsOff: 999, points: 0, guessedYear: null };
+
+  document.getElementById('pr-title').textContent =
+    myResult.yearsOff === 0 ? '🎯 Spot on!' :
+    myResult.yearsOff <= 1 ? '🔥 So close!' :
+    myResult.yearsOff <= 3 ? '👍 Good guess!' :
+    myResult.yearsOff <= 5 ? '🤔 Not bad...' : '📅 Way off!';
+
+  const yearsEl = document.getElementById('pr-years-off');
+  if (myResult.yearsOff === 0) {
+    yearsEl.textContent = `Exact! ${photo.year}`;
+    yearsEl.className = 'my-years-off exact';
+  } else if (myResult.guessedYear != null) {
+    yearsEl.textContent = `${myResult.yearsOff} year${myResult.yearsOff !== 1 ? 's' : ''} off`;
+    yearsEl.className = 'my-years-off ' + (myResult.yearsOff <= 2 ? 'close' : 'far');
+  } else {
+    yearsEl.textContent = 'No guess';
+    yearsEl.className = 'my-years-off far';
+  }
+
+  document.getElementById('pr-points').innerHTML = `<strong>+${myResult.points}</strong> points`;
+
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('pr-leaderboard').innerHTML = results.map((r, i) => `
+    <div class="mini-row ${r.name === playerName ? 'me' : ''}">
+      <span class="rank">${medals[i] || (i + 1)}</span>
+      <span class="name">${r.name}</span>
+      <span class="pts">+${r.points}</span>
+    </div>
+  `).join('');
+
+  const myData = data.players?.[playerId];
+  document.getElementById('p-my-score').textContent = myData?.totalScore || 0;
+}
+
+// =============================================================================
+// FINAL
+// =============================================================================
+function showFinalScreen(data) {
+  showScreen('final-screen');
+
+  const players = data.players || {};
+  const sorted = Object.values(players).sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+  const winner = sorted[0];
+
+  const isWinner = winner?.name === playerName;
+  document.getElementById('f-title').textContent = isWinner ? '🎉 You Won!' : `${winner?.name} Wins!`;
+  document.getElementById('f-subtitle').textContent = `${(winner?.totalScore || 0).toLocaleString()} points`;
+
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('f-standings').innerHTML = sorted.map((p, i) => `
+    <div class="final-row" style="animation: slideUp 0.4s ease ${i * 0.1}s both;">
+      <span class="rank">${medals[i] || (i + 1)}</span>
+      <span class="name">${p.name}${p.name === playerName ? ' (you)' : ''}</span>
+      <span class="score">${(p.totalScore || 0).toLocaleString()}</span>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>
