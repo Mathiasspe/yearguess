@@ -608,10 +608,10 @@
     </div>
 
     <div class="year-slider-container">
-      <input type="range" class="year-slider" id="year-slider" min="1970" max="2026" value="2015" />
+      <input type="range" class="year-slider" id="year-slider" min="2019" max="2025" value="2022" />
       <div class="year-slider-labels">
-        <span>1970</span>
-        <span>2026</span>
+        <span>2019</span>
+        <span>2025</span>
       </div>
     </div>
   </div>
@@ -678,7 +678,7 @@ let playerId = null;
 let playerName = '';
 let hasGuessedThisRound = false;
 let currentRoundIndex = -1;
-let selectedYear = 2015;
+let selectedYear = 2022;
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -709,7 +709,7 @@ const yearDisplay = document.getElementById('year-display');
 const yearSlider = document.getElementById('year-slider');
 
 function setYear(y) {
-  selectedYear = Math.max(1970, Math.min(2026, y));
+  selectedYear = Math.max(2019, Math.min(2025, y));
   yearDisplay.textContent = selectedYear;
   yearSlider.value = selectedYear;
 }
@@ -848,7 +848,7 @@ function startGuessing(data) {
   document.getElementById('p-my-score').textContent = myData?.totalScore || 0;
 
   // Reset year to middle
-  setYear(2005);
+  setYear(2022);
 }
 
 document.getElementById('submit-guess-btn').addEventListener('click', () => submitGuess(false));
